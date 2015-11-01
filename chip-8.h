@@ -41,6 +41,10 @@ class Chip8
   0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
   0xF0, 0x80, 0xF0, 0x80, 0x80  /* F */ }; //Casually stolen from multigesture, used to draw characters to the screen
 
+	//Timers
+	unsigned int dTimer;
+	unsigned int soundTimer;
+
 	public:
 		Chip8();
 		~Chip8();
