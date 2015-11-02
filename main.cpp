@@ -2,6 +2,10 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <iomanip>
+
+//SFML includes
+#include <SFML/System.hpp>
 
 //This project's headers includes
 #include "graphics.h"
@@ -19,9 +23,20 @@ int main(int argc, const char *argv[])
 	if(not initGraphics())
 		return 1;
 
+	sf::Clock clock;
+
+	std::cerr << std::setprecision(10);
+
 	while(true)
 	{
+		clock.restart();
+			
 		core.emulateCycle();
 		drawScreen();
+		
+		while( clock.getElapsedTime().asMilliseconds() < 1000/60 ) //Chip-8 has a refresh rate of 60Hz, 60 times per second
+			sf::sleep(sf::milliseconds( (1000/60) - clock.getElapsedTime().asMilliseconds()) );
+			
+		std::cerr << "\rFPS: " << (1 / clock.getElapsedTime().asSeconds()); 
 	}	
 }
