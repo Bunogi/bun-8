@@ -47,10 +47,10 @@ class Chip8
 
 	public:
 		Chip8();
-		~Chip8();
 		int loadProgram(std::string file);
 		void emulateCycle();
 		void refreshKeys();
+		bool drawFlag; //Determine whenever or not to redraw the screen
 
 };
 

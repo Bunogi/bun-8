@@ -10,6 +10,7 @@
 
 //Project includes
 #include "chip-8.h"
+#include "graphics.h"
 #include "exceptions.h"
 
 Chip8::Chip8()
@@ -21,6 +22,8 @@ Chip8::Chip8()
 	dTimer = 0;
 	soundTimer = 0;
 
+	drawFlag = false;
+
 	memset(stack, 0, sizeof stack);
 	memset(key, 0, sizeof key);
 	memset(memory, 0, sizeof memory);
@@ -30,10 +33,6 @@ Chip8::Chip8()
 
 	for(int iii = 0; iii < 80; iii++)
 		memory[iii] = fontset[iii];  // Load the fontset into memory
-}
-
-Chip8::~Chip8()
-{
 }
 
 int Chip8::loadProgram(std::string file)
@@ -72,7 +71,7 @@ void Chip8::emulateCycle()
 				switch(opcode)
 				{
 					case 0x00E0: //00E0, clear the screen
-						std::cerr << "Please implement graphics!\n";
+						memset(screen, 0, sizeof screen);
 						pc += 2;
 						break;
 					
@@ -86,7 +85,7 @@ void Chip8::emulateCycle()
 				pc = opcode & 0x0FFF;
 				break;
 
-			case 0x2000: //0x2NNN, calls subroutine at NNN
+			case 0x2000: //2NNN, calls subroutine at NNN
 				stack[stackPointer] = pc;
 				stackPointer++;
 				pc = opcode & 0x0FFF;
@@ -207,10 +206,34 @@ void Chip8::emulateCycle()
 				pc += 2;
 				break;
 
-			case 0xD000: //DXYN, Draw a sprite and some things, not yet implemented
-				std::cerr << "Please implement graphics!\n";
+			case 0xD000: //DXYN, Draw at coordinate V[X], V[Y], width of 8 pixels and a height of N pixels.
+									 //Each Row of 8 pixels is read as bit-coded starting from memory location I;
+									 //I value doesn't change after this instruction. V[0xF] is set to 1 if any screen pixels
+									 //Are flipped from set to unset when the sprite is drawn, and to 0 if that doesn't happen.
+			{
+				unsigned short x = V[(opcode & 0x0F00) >> 8];
+				unsigned short y = V[(opcode & 0x00F0) >> 8]; //Unsigned shorts are 2 bits long
+				unsigned short height = opcode & 0x000F;
+				unsigned short pixel;
+
+				V[0xF] = 0;
+				for (int yline = 0; yline < height; yline++)
+				{
+					pixel = memory[I + yline];
+					for(int xline = 0; xline < 8; xline++) //Width is always 8 pixels
+					{
+						if((pixel & (0x80 >> xline)) != 0)
+						{
+							if(screen[(x + xline + ((y + yline) * 64))] == 1)
+								V[0xF] = 1;
+							screen[x + xline + ((y + yline) * 64)] ^= 1;
+						}
+					}
+				}
+				drawFlag = true;
 				pc += 2;
 				break;
+			}
 
 			case 0xE000: 
 				switch(opcode & 0xF0FF)
@@ -222,6 +245,9 @@ void Chip8::emulateCycle()
 					case 0xE0A1: //EXA1, Skip next instruction if the key stored in V[X] is not pressed
 						std::cerr << "Please implement input!\n";
 						pc += 2;
+						break;
+					default:
+						throw(unknownOpcodeException(opcode, opcode & 0xF0FF));
 						break;
 				}
 				break;

@@ -19,10 +19,9 @@ int main(int argc, const char *argv[])
 {
 	Chip8 core;	
 	if(core.loadProgram(std::string(argv[1])) != 0) return 1;
-
-	if(not initGraphics())
-		return 1;
-
+	
+	initGraphics();
+	
 	sf::Clock clock;
 
 	std::cerr << std::setprecision(10);
@@ -32,7 +31,9 @@ int main(int argc, const char *argv[])
 		clock.restart();
 			
 		core.emulateCycle();
-		drawScreen();
+
+		if (core.drawFlag)
+			drawScreen();
 		
 		while( clock.getElapsedTime().asMilliseconds() < 1000/60 ) //Chip-8 has a refresh rate of 60Hz, 60 times per second
 			sf::sleep(sf::milliseconds( (1000/60) - clock.getElapsedTime().asMilliseconds()) );
