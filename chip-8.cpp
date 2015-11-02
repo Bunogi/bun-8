@@ -90,6 +90,7 @@ void Chip8::emulateCycle()
 				stack[stackPointer] = pc;
 				stackPointer++;
 				pc = opcode & 0x0FFF;
+				break;
 
 			case 0x3000: //3XNN, skip next instruction if VX == NN
 				if (V[(opcode & 0x0F00) >> 8] == (opcode & 0x00FF))
