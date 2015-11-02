@@ -3,9 +3,6 @@
 #include <memory>
 #include <string>
 
-//SDL includes
-#include <SDL2/SDL.h>
-
 //This project's headers includes
 #include "graphics.h"
 #include "chip-8.h"
@@ -19,8 +16,12 @@ int main(int argc, const char *argv[])
 	Chip8 core;	
 	if(core.loadProgram(std::string(argv[1])) != 0) return 1;
 
+	if(not initGraphics())
+		return 1;
+
 	while(true)
 	{
 		core.emulateCycle();
+		drawScreen();
 	}	
 }

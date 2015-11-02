@@ -1,3 +1,4 @@
 .*.swp
 c-8roms/
 bun-8
+*.o
