@@ -13,8 +13,8 @@ sf::Vector2<float> size( 5, 5);
 
 sf::RenderWindow window(sf::VideoMode(screen_width, screen_height), "Bun-8");
 sf::RectangleShape pixels[64][32] = {};
-sf::Text text[64] = {};
-sf::Font font;
+//sf::Text text[64] = {};
+//sf::Font font;
 
 unsigned short screen[64 * 32] = { };
 
@@ -27,10 +27,10 @@ bool initGraphics()
 			pixels[iii][jjj] = sf::RectangleShape(size);
 			pixels[iii][jjj].setPosition(jjj* size.x, iii * size.y);
 		}
-		text[iii].setPosition(iii * 5, (32 * 5) + 3);
-		text[iii].setString(std::to_string(iii));
+//		text[iii].setPosition(iii * 5, (32 * 5) + 3);
+//		text[iii].setString(std::to_string(iii));
 	}
-	font.loadFromFile("./font.ttf");
+//	font.loadFromFile("./font.ttf");
 
 	return true;
 }
