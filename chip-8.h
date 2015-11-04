@@ -19,12 +19,9 @@ class Chip8
 	unsigned short stack[16];
 	unsigned short stackPointer; 
 
-	//Keyboard state
-	unsigned char key[16];
-
 	//fontset
 	unsigned char fontset[80] =	{ 
-  0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+	0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
   0x20, 0x60, 0x20, 0x20, 0x70, // 1
   0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
   0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
@@ -39,11 +36,11 @@ class Chip8
   0xF0, 0x80, 0x80, 0x80, 0xF0, // C
   0xE0, 0x90, 0x90, 0x90, 0xE0, // D
   0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-  0xF0, 0x80, 0xF0, 0x80, 0x80  /* F */ }; //Casually stolen from multigesture, used to draw characters to the screen
-
+  0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+	};
 	//Timers
-	unsigned int dTimer;
-	unsigned int soundTimer;
+	unsigned short dTimer;
+	unsigned short soundTimer;
 
 	public:
 		Chip8();
@@ -51,6 +48,9 @@ class Chip8
 		void emulateCycle();
 		void refreshKeys();
 		bool drawFlag; //Determine whenever or not to redraw the screen
+
+		//Keyboard state
+		bool key[16];
 
 };
 

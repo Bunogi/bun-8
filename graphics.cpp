@@ -6,10 +6,10 @@
 
 #include "graphics.h"
 
-const int screen_width = 400;
-const int screen_height = 200;
+const int screen_width = 1000;
+const int screen_height = 500;
 
-sf::Vector2<float> size( 5, 5);
+sf::Vector2<float> size( screen_width / 64, screen_height / 32);
 
 sf::RenderWindow window(sf::VideoMode(screen_width, screen_height), "Bun-8");
 sf::RectangleShape pixels[64][32] = {};
@@ -25,12 +25,9 @@ bool initGraphics()
 		for(int jjj = 0; jjj < 32; jjj++)
 		{
 			pixels[iii][jjj] = sf::RectangleShape(size);
-			pixels[iii][jjj].setPosition(jjj* size.x, iii * size.y);
+			pixels[iii][jjj].setPosition(iii * size.x, jjj * size.y);
 		}
-//		text[iii].setPosition(iii * 5, (32 * 5) + 3);
-//		text[iii].setString(std::to_string(iii));
 	}
-//	font.loadFromFile("./font.ttf");
 
 	return true;
 }
@@ -41,27 +38,34 @@ void drawScreen()
 	for(int iii = 0; iii < 32*64; iii++)
 	{
 		int x, y;
-		if( iii % 64 == 0 ) // y is zero
+		if( iii <= 63 )
+		{
+			x = 0;	
+			y = iii;
+		}
+		if( iii % 64 == 0) // y is zero
 		{	
 			x = iii / 64;
 			y = 0;
 		}
-		else
+		else if (iii % 64 != 0 )
 		{
 			int leftover = iii % 64;
 			x = ((iii - leftover) / 64);
 			y = leftover;
 		}
 		
-		if( screen[iii] )
+		if( screen[iii] != 0)
 		{
-			pixels[x][y].setFillColor(sf::Color(255, 0, 0));	
+			pixels[y][x].setFillColor(sf::Color(255, 255, 255));	
 		}
 		else
-			pixels[x][y].setFillColor(sf::Color(0, 255, 0));
+			pixels[y][x].setFillColor(sf::Color(0, 0, 0));
 			
-	
-		window.draw(pixels[x][y]);	
 	}
+	for (int x = 0; x < 64; x++)
+		for(int y = 0; y < 32; y++)
+			window.draw(pixels[x][y]);
+	
 	window.display();	
 }

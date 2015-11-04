@@ -2,16 +2,22 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include <cstring>
 
 //C includes for random numbers, a little easier than using C++11's random, but yes I know it exists
 #include <stdlib.h>
 #include <time.h>
+#include <cstring>
+
+#include <SFML/Window/Event.hpp>
+#include <SFML/Graphics.hpp>
 
 //Project includes
 #include "chip-8.h"
 #include "graphics.h"
 #include "exceptions.h"
+#include "keys.h"
+
+extern sf::RenderWindow window;
 
 Chip8::Chip8()
 {
@@ -64,6 +70,8 @@ void Chip8::emulateCycle()
 {
 	opcode = memory[pc] << 8 | memory[pc + 1]; // The actual opcode is two bytes long, so we merge two bytes here.
 	int testCode = opcode & 0xF000;
+	//std::cerr << "Executing " << std::hex << opcode << "\n";
+	
 	try {			
 		switch(testCode) //
 		{
@@ -161,13 +169,13 @@ void Chip8::emulateCycle()
 					break;
 
 				case 0x8006: //8XY6, Shift V[X] right by one, V[F] is set to the least significant bit of V[X] before the shift
-					V[0xF] = (V[opcode & 0x0F00] << 8) & 1;
+					V[0xF] = (V[opcode & 0x0F00] >> 8) & 7;
 					V[opcode & 0x0F00] >>= 1;
 					pc += 2;
 					break;
 
 				case 0x8007: //8XY7, Sets V[X] = V[Y] - V[X], V[F] is set to 0 when there isn't a borrow, and 1 when it is.
-					if(V[(opcode & 0x0F00) >> 8] < V[(opcode & 0x00F0) >> 4])
+					if(V[(opcode & 0x0F00) >> 8] > V[(opcode & 0x00F0) >> 4])
 						V[0xF] = 1;
 					else
 						V[0xF] = 0;
@@ -187,7 +195,7 @@ void Chip8::emulateCycle()
 			}
 			
 			case 0x9000: //9XY0, skip next instruction if V[X] != V[Y]
-				if(V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 8])
+				if(V[(opcode & 0x0F00) >> 8] != V[(opcode & 0x00F0) >> 4])
 					pc += 2;
 				pc += 2;
 				break;
@@ -212,7 +220,7 @@ void Chip8::emulateCycle()
 									 //Are flipped from set to unset when the sprite is drawn, and to 0 if that doesn't happen.
 			{
 				unsigned short x = V[(opcode & 0x0F00) >> 8];
-				unsigned short y = V[(opcode & 0x00F0) >> 8]; //Unsigned shorts are 2 bits long
+				unsigned short y = V[(opcode & 0x00F0) >> 4]; //Unsigned shorts are 2 bits long
 				unsigned short height = opcode & 0x000F;
 				unsigned short pixel;
 
@@ -239,11 +247,13 @@ void Chip8::emulateCycle()
 				switch(opcode & 0xF0FF)
 				{
 					case 0xE09E: //EX9E, Skip next instruction if the key stored in V[X] is pressed
-						std::cerr << "Please implement input!\n";
+						if(key[V[(opcode & 0x0F00) >> 8]])
+							pc += 2;
 						pc += 2;
 						break;
 					case 0xE0A1: //EXA1, Skip next instruction if the key stored in V[X] is not pressed
-						std::cerr << "Please implement input!\n";
+						if( not key[V[(opcode & 0x0F00) >> 8]])
+							pc += 2;
 						pc += 2;
 						break;
 					default:
@@ -261,17 +271,30 @@ void Chip8::emulateCycle()
 					break;
 				
 				case 0xF00A: //FX0A, a key press is awaited, and then stored in V[X];
-					std::cerr << "Please implement input, opcode 0xFX0A!\n";
+					std::cerr << "Warning: using opcode FX0A, not sure if it works or not\n";
+					sf::Event event;
+					while( window.pollEvent(event))
+					{
+						if( event.type == sf::Event::KeyPressed )	
+						{
+							unsigned short pressedKey = getKeypress();
+
+							if( pressedKey == 0xFF ) //Pressed key is not bound to any Chip-8 keypad key
+								continue;
+
+							V[(opcode & 0x0F00) >> 8] = pressedKey;
+						}
+					}
 					pc += 2;
 					break;
 				
 				case 0xF015: //FX15, set the delay timer to V[X]
-					dTimer = ((opcode & 0x0F00) << 8);
+					dTimer = V[((opcode & 0x0F00) >> 8)];
 					pc += 2;
 					break;
 			
 				case 0xF018: //FX18, set the sound timer to V[X]
-					soundTimer = ((opcode & 0x0F00) << 8);
+					soundTimer = V[((opcode & 0x0F00) >> 8)];
 					pc += 2;
 					break;
 				
@@ -297,7 +320,6 @@ void Chip8::emulateCycle()
 				for(int iii = 0; iii <= ((opcode & 0x0F00) >> 8); iii++)
 					memory[I + iii] = V[iii];
 
-				I += ((opcode & 0x0F00) >> 8) + 1; //Original interpreter did this, adding in for improved accuracy.
 				pc += 2;
 				break;
 
@@ -305,7 +327,6 @@ void Chip8::emulateCycle()
 				for(int iii = 0; iii <= ((opcode & 0x0F00) >> 8); iii++)
 					V[iii] = memory[I + iii];
 
-				I += ((opcode & 0x0F00) >> 8) + 1; //For accuracy, original interpreter did this
 				pc += 2;
 				break;
 
@@ -314,12 +335,14 @@ void Chip8::emulateCycle()
 				break;
 		}
 	} catch(unknownOpcodeException ex) {
-		std::cerr << "Unknown opcode 0x" << std::hex << ex.rawOpcode << " for instruction 0x" << ex.opcodeInstruction << ", terminating.. \n";
+		std::cerr << "Unknown opcode " << std::hex << ex.rawOpcode << " for instruction " << ex.opcodeInstruction << ", terminating.. \n";
 		exit(1);
 		}
 
-	if(dTimer != 0)
+	if(dTimer > 0)
+	{
 		dTimer--;
+	}
 	if(soundTimer == 0)
 		;
 	else

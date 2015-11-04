@@ -6,14 +6,18 @@
 
 //SFML includes
 #include <SFML/System.hpp>
+#include <SFML/Window/Event.hpp>
+#include <SFML/Graphics.hpp>
+
+#include <cstring>
 
 //This project's headers includes
 #include "graphics.h"
 #include "chip-8.h"
 #include "constants.h"
+#include "keys.h"
 
-//const int pixel_height = screen_height / 64; //Display resolution of CHIP-8 is 64x32, this way we can scale them and resize our own window
-//const int pixel_width = screen_width / 32;	 //The remainder doesn't matter, we can't illuminate half a pixel and therefore we ignore them 
+extern sf::RenderWindow window;
 
 int main(int argc, const char *argv[])
 {
@@ -29,7 +33,27 @@ int main(int argc, const char *argv[])
 	while(true)
 	{
 		clock.restart();
-			
+		std::memset(core.key, false, sizeof core.key);
+		
+		sf::Event event;	
+		while(window.pollEvent(event))
+		{
+			switch(event.type)
+			{
+				case sf::Event::KeyPressed:
+				{
+					unsigned short pressedKey = getKeypress();
+					if(pressedKey != 0xFF)
+						//std::cerr << "You pressed the key " << std::hex << pressedKey << "\n";
+						core.key[pressedKey] = true;
+				
+					break;
+				}	
+				default:
+					break;
+			}
+		}
+				
 		core.emulateCycle();
 
 		if (core.drawFlag)
