@@ -6,21 +6,21 @@
 class Chip8
 {
 
-	unsigned short opcode; //Stores current opcode
+	uint8_t opcode; //Stores current opcode
 
 	unsigned char memory[4096]; //4KB of memory
 
 	//CPU registers
-	unsigned char V[16]; //General purpose registers
-	unsigned short I;// Index register
-	unsigned short pc; //Program counter
+	unsigned char V[16]; //General purpose register
+	uint8_t I;// Index register
+	unsigned int pc; //Program counter, must be at least the same size as memory
 
 	//Stack
-	unsigned short stack[16];
-	unsigned short stackPointer; 
+	uint8_t stack[16];
+	uint8_t stackPointer; 
 
 	//fontset
-	unsigned char fontset[80] =	{ 
+	uint8_t fontset[80] =	{ 
 	0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
   0x20, 0x60, 0x20, 0x20, 0x70, // 1
   0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -39,8 +39,8 @@ class Chip8
   0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 	};
 	//Timers
-	unsigned short dTimer;
-	unsigned short soundTimer;
+	uint8_t dTimer;
+	uint8_t soundTimer;
 
 	public:
 		Chip8();

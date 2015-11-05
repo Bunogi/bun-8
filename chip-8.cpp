@@ -219,10 +219,10 @@ void Chip8::emulateCycle()
 									 //I value doesn't change after this instruction. V[0xF] is set to 1 if any screen pixels
 									 //Are flipped from set to unset when the sprite is drawn, and to 0 if that doesn't happen.
 			{
-				unsigned short x = V[(opcode & 0x0F00) >> 8];
-				unsigned short y = V[(opcode & 0x00F0) >> 4]; //Unsigned shorts are 2 bits long
-				unsigned short height = opcode & 0x000F;
-				unsigned short pixel;
+				uint8_t x = V[(opcode & 0x0F00) >> 8];
+				uint8_t y = V[(opcode & 0x00F0) >> 4]; //Unsigned shorts are 2 bits long
+				uint8_t height = opcode & 0x000F;
+				uint8_t pixel;
 
 				V[0xF] = 0;
 				for (int yline = 0; yline < height; yline++)
@@ -277,7 +277,7 @@ void Chip8::emulateCycle()
 					{
 						if( event.type == sf::Event::KeyPressed )	
 						{
-							unsigned short pressedKey = getKeypress();
+							uint8_t pressedKey = getKeypress();
 
 							if( pressedKey == 0xFF ) //Pressed key is not bound to any Chip-8 keypad key
 								continue;
